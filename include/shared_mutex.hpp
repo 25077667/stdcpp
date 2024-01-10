@@ -1,0 +1,5 @@
+#ifndef __SCC_STDCPP_SHARED_MUTEX_HPP__
+#define __SCC_STDCPP_SHARED_MUTEX_HPP__
+#pragma once
+
+#endif // __SCC_STDCPP_SHARED_MUTEX_HPP__
