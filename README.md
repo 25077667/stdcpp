@@ -3,6 +3,11 @@
 ## Overview:
 The stdcpp project provides custom implementations of various standard C++ library functions. This is particularly useful in scenarios where the standard library is not fully supported by the compiler or the target environment. The project aims to offer a reliable alternative for developers facing such constraints.
 
+## Minimum Requirements:
+```
+C++14
+```
+
 ## Usage Instructions:
 To utilize the stdcpp library, simply include the desired header file in your C++ project. The library is structured to be straightforward and easy to integrate.
 
