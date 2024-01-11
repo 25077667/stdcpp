@@ -25,6 +25,18 @@ namespace stdcpp
     {
         return v1::__ToUnderlying<Enum>::value(e);
     }
+
+    template <class T>
+    constexpr auto ssize(const T &t) noexcept(noexcept(static_cast<std::make_signed_t<decltype(t.size())>>(t.size())))
+    {
+        return static_cast<std::make_signed_t<decltype(t.size())>>(t.size());
+    }
+
+    template <class T>
+    constexpr auto cdata(const T &t) noexcept(noexcept(t.data()))
+    {
+        return t.data();
+    }
 }
 
 #endif // __SCC_STDCPP_UTILITY_HPP__

@@ -1,6 +1,8 @@
 #include <utility.hpp>
 #include <gtest/gtest.h>
 
+#include <vector>
+
 enum class EnumType
 {
     A,
@@ -23,4 +25,10 @@ TEST(Utility, to_underlying_convertEnumToUnderlyingTypeAtCompileTime)
     EXPECT_EQ(a, 0);
     EXPECT_EQ(b, 1);
     EXPECT_EQ(c, 2);
+}
+
+TEST(Utility, ssize_convertUnsignedToSigned)
+{
+    std::vector<int> v{1, 2, 3};
+    EXPECT_EQ(stdcpp::ssize(v), 3);
 }
