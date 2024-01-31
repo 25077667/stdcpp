@@ -2,6 +2,7 @@
 #define __SCC_STDCPP_UTILITY_HPP__
 
 #include <type_traits>
+#include <utility>
 
 namespace stdcpp
 {
@@ -30,6 +31,12 @@ namespace stdcpp
     constexpr auto ssize(const T &t) noexcept(noexcept(static_cast<std::make_signed_t<decltype(t.size())>>(t.size())))
     {
         return static_cast<std::make_signed_t<decltype(t.size())>>(t.size());
+    }
+
+    template <class T>
+    constexpr auto ssize(T &&t)
+    {
+        return static_cast<std::make_signed_t<decltype(std::forward<T>(t).size())>>(std::forward<T>(t).size());
     }
 
     template <class T>
