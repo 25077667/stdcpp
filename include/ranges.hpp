@@ -118,6 +118,39 @@ namespace stdcpp
             {
                 return stdcpp::cdata(std::forward<T>(r));
             };
+
+            template <class T>
+            using iterator_t = decltype(begin(std::declval<T &>()));
+
+            template <class R>
+            using sentinel_t = decltype(end(std::declval<R &>()));
+
+            template <class R>
+            using const_iterator_t = decltype(cbegin(std::declval<R &>()));
+
+            template <class R>
+            using const_sentinel_t = decltype(cend(std::declval<R &>()));
+
+            template <class R>
+            using range_difference_t = iter_difference_t<iterator_t<R>>;
+
+            template <class R>
+            using range_size_t = decltype(size(std::declval<R &>()));
+
+            template <class R>
+            using range_value_t = iter_value_t<iterator_t<R>>;
+
+            template <class R>
+            using range_reference_t = iter_reference_t<iterator_t<R>>;
+
+            template <class R>
+            using range_const_reference_t = iter_const_reference_t<iterator_t<R>>;
+
+            template <class R>
+            using range_rvalue_reference_t = iter_rvalue_reference_t<iterator_t<R>>;
+
+            template <class R>
+            using range_common_reference_t = iter_common_reference_t<iterator_t<R>>;
         }
 
         // using views = ranges::views;
