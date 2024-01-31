@@ -13,18 +13,12 @@ namespace stdcpp
         {
             return static_cast<std::underlying_type_t<Enum>>(e);
         }
-
-        template <class Enum>
-        struct __ToUnderlying
-        {
-            static constexpr auto value = v1::to_underlying<Enum>;
-        };
     }
 
     template <class Enum>
     constexpr auto to_underlying(Enum e) noexcept
     {
-        return v1::__ToUnderlying<Enum>::value(e);
+        return v1::to_underlying(e);
     }
 
     template <class T>
@@ -43,6 +37,12 @@ namespace stdcpp
     constexpr auto cdata(const T &t) noexcept(noexcept(t.data()))
     {
         return t.data();
+    }
+
+    template <class T, std::size_t N>
+    constexpr auto cdata(const T (&t)[N]) noexcept
+    {
+        return t;
     }
 }
 
