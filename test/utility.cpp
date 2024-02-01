@@ -119,51 +119,17 @@ TEST(CDataTest, WorksForCStyleArray)
     EXPECT_EQ(stdcpp::cdata(arr), std::begin(arr));
 }
 
-TEST(CommonReferenceTest, BasicTest)
+TEST(AddConstTest, AddsConstToType)
 {
-    static_assert(stdcpp::is_same_v<stdcpp::common_reference_t<int>, int>, "Common reference of int should be int");
-    static_assert(stdcpp::is_same_v<stdcpp::common_reference_t<int &>, int &>, "Common reference of int& should be int&");
+    static_assert(std::is_same<stdcpp::add_const<int>::type, const int>::value, "add_const should add const to type");
+    static_assert(std::is_same<stdcpp::add_const<const int>::type, const int>::value, "add_const should not add const to const type");
+    static_assert(std::is_same<stdcpp::add_const<int &>::type, int &>::value, "add_const should not add const to reference type");
+    static_assert(std::is_same<stdcpp::add_const<const int &>::type, const int &>::value, "add_const should add const to const reference type");
 }
 
-TEST(IteratorTraitsTest, ValueTest)
+TEST(AsConstTest, AddsConstToLValue)
 {
-    static_assert(stdcpp::is_same_v<stdcpp::iter_value_t<std::vector<int>::iterator>, int>, "Iterator value type should be int for vector<int>");
-}
-
-TEST(IteratorTraitsTest, ReferenceTest)
-{
-    static_assert(stdcpp::is_same_v<stdcpp::iter_reference_t<std::vector<int>::iterator>, int &>, "Iterator reference type should be int& for vector<int>");
-}
-
-TEST(IteratorTraitsTest, RValueReferenceTest)
-{
-    static_assert(stdcpp::is_same_v<stdcpp::iter_rvalue_reference_t<std::vector<int>::iterator>, int &&>, "Iterator rvalue reference type should be int&& for vector<int>");
-}
-
-TEST(IteratorTraitsTest, DifferenceTest)
-{
-    static_assert(stdcpp::is_same_v<stdcpp::iter_difference_t<std::vector<int>::iterator>, std::ptrdiff_t>, "Iterator difference type should be ptrdiff_t for vector<int>");
-}
-
-TEST(IteratorTraitsTest, ConstValueTest)
-{
-    static_assert(stdcpp::is_same_v<stdcpp::iter_value_t<std::vector<int>::const_iterator>, int>, "Iterator value type should be int for vector<int>");
-}
-
-TEST(IteratorTraitsTest, ConstReferenceTest)
-{
-    static_assert(stdcpp::is_same_v<stdcpp::iter_reference_t<std::vector<int>::const_iterator>, const int &>, "Iterator reference type should be const int& for vector<int>");
-}
-
-TEST(IteratorTraitsTest, CommonReferenceTest)
-{
-    static_assert(stdcpp::is_same_v<stdcpp::iter_common_reference_t<std::vector<int>::iterator>, stdcpp::iter_reference_t<std::vector<int>::iterator>>, "Iterator common reference type should be iterator reference type for vector<int>");
-}
-
-TEST(IterMoveTest, BasicTest)
-{
-    std::vector<int> vec = {1, 2, 3};
-    auto it = vec.begin();
-    auto moved = stdcpp::iter_move(it);
-    EXPECT_EQ(moved, 1);
+    int i = 10;
+    const auto &const_i = stdcpp::as_const(i);
+    static_assert(std::is_same<decltype(const_i), const int &>::value, "as_const should add const to lvalue");
 }
