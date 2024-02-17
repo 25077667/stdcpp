@@ -18,6 +18,9 @@ To utilize the stdcpp library, simply include the desired header file in your C+
 | utility | to_underlying | Provides a to_underlying implementation for C++14. | std::underlying_type is supported since C++23. |
 | string | u8string | Provides a u8string implementation for C++14. | std::u8string is supported since C++20. |
 | ranges | basic ranges | Provides basic ranges implementation for C++14. | std::ranges is supported since C++20 and C++23. |
+| string_view | basic_string_view | Provides a basic_string_view implementation for C++14. | The time_zone needs string_view |
+| iterator | iterator_traits | Provides a iterator_traits implementation for C++14. | std::iterator_traits<std::common_iterator> or some related iterator traits for ranges are defined since C++20 |
+| chrono | clock series, tz, calendar | Provides a clock series, tz, calendar implementation for C++14. | std::chrono::calendar is supported since C++20. |
 
 ## Building the Project:
 stdcpp is primarily a header-only library, streamlining its integration into other projects. However, for those interested in compiling the library, follow these steps using CMake:
