@@ -34,7 +34,9 @@ class basic_string_view {
   using reverse_iterator = const_reverse_iterator;
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
-  static constexpr size_type npos = size_type(-1);
+  // we couldn't use constexpr here because of the C++14 compatibility
+  // See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=54483
+  static size_type npos;
 
  private:
   const_pointer data_;
@@ -423,6 +425,10 @@ class basic_string_view {
 
   // Non-member functions (comparison operators, etc.) should be implemented outside the class.
 };
+
+template <typename CharT, typename Traits>
+typename basic_string_view<CharT, Traits>::size_type
+    basic_string_view<CharT, Traits>::npos = static_cast<size_type>(-1);
 };  // namespace v1
 
 // Suffix for basic_string_view literals
