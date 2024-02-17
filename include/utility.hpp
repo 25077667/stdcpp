@@ -1,7 +1,6 @@
 #ifndef __SCC_STDCPP_UTILITY_HPP__
 #define __SCC_STDCPP_UTILITY_HPP__
 
-#include <concept.hpp>
 #include <iterator.hpp>
 #include <type_traits.hpp>
 
