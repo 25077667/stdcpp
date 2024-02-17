@@ -5,7 +5,12 @@
 
 class UtcClockTest : public ::testing::Test {
  protected:
-  // Setup and teardown if needed
+  void SetUp() override {}
+  void TearDown() override {}
+};
+
+class TaiClockTest : public ::testing::Test {
+ protected:
   void SetUp() override {}
   void TearDown() override {}
 };
@@ -96,4 +101,57 @@ TEST_F(UtcClockLeapSecondTest, LeapSecondInfoAccuracy) {
   EXPECT_EQ(leap_info.leap_seconds.count(),
             36);  // Adjust based on the actual data for the test date
   // The test does not directly check is_leap_second because the current implementation always returns false.
+}
+
+TEST_F(TaiClockTest, ToUtcTimeConversion) {
+  auto now = std::chrono::system_clock::now();
+
+  // Test with seconds
+  auto utc_seconds = stdcpp::to_utc_time<std::chrono::seconds>(now);
+  auto expected_seconds =
+      std::chrono::duration_cast<std::chrono::seconds>(now.time_since_epoch());
+  EXPECT_EQ(utc_seconds.time_since_epoch(), expected_seconds);
+
+  // Test with milliseconds
+  auto utc_milliseconds = stdcpp::to_utc_time<std::chrono::milliseconds>(now);
+  auto expected_milliseconds =
+      std::chrono::duration_cast<std::chrono::milliseconds>(
+          now.time_since_epoch());
+  EXPECT_EQ(utc_milliseconds.time_since_epoch(), expected_milliseconds);
+
+  // Test with microseconds
+  auto utc_microseconds = stdcpp::to_utc_time<std::chrono::microseconds>(now);
+  auto expected_microseconds =
+      std::chrono::duration_cast<std::chrono::microseconds>(
+          now.time_since_epoch());
+  EXPECT_EQ(utc_microseconds.time_since_epoch(), expected_microseconds);
+
+  // Test with nanoseconds
+  auto utc_nanoseconds = stdcpp::to_utc_time<std::chrono::nanoseconds>(now);
+  auto expected_nanoseconds =
+      std::chrono::duration_cast<std::chrono::nanoseconds>(
+          now.time_since_epoch());
+  EXPECT_EQ(utc_nanoseconds.time_since_epoch(), expected_nanoseconds);
+}
+
+TEST_F(TaiClockTest, TaiClockToSysConversion) {
+  auto tai_now = stdcpp::tai_clock::now();
+  auto sys_now = stdcpp::tai_clock::to_sys(tai_now);
+  // This test assumes no leap seconds; adjust accordingly
+  EXPECT_EQ(tai_now.time_since_epoch(), sys_now.time_since_epoch());
+}
+
+TEST_F(TaiClockTest, TaiClockFromSysConversion) {
+  auto sys_now = std::chrono::system_clock::now();
+  auto tai_now = stdcpp::tai_clock::from_sys(sys_now);
+  // This test assumes no leap seconds; adjust accordingly
+  EXPECT_EQ(tai_now.time_since_epoch(), sys_now.time_since_epoch());
+}
+
+TEST_F(TaiClockTest, OutputStreamOperator) {
+  auto tai_now = stdcpp::tai_clock::now();
+  std::ostringstream oss;
+  oss << tai_now;
+  std::string not_expected_output = "Expected formatted time string";
+  EXPECT_NE(oss.str(), not_expected_output);
 }

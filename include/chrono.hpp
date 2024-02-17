@@ -5,7 +5,10 @@
 #include <array>
 #include <chrono>
 #include <ctime>
+#include <iomanip>  // For std::get_time
 #include <iostream>
+#include <istream>
+#include <sstream>  // For std::istringstream
 #include <string>
 #include <utility>
 
@@ -147,6 +150,67 @@ static leap_second_info get_leap_second_info(const utc_time<Duration>& ut) {
 
   return leap_second_info(false, std::chrono::seconds(last_leap_second));
 }
+
+template <typename Duration>
+utc_time<Duration> to_utc_time(
+    const std::chrono::system_clock::time_point& tp) {
+  auto duration_since_epoch = tp.time_since_epoch();
+  auto duration_in_target_type =
+      std::chrono::duration_cast<Duration>(duration_since_epoch);
+  return utc_time<Duration>(duration_in_target_type);
+}
+
+class tai_clock {
+ public:
+  using rep = std::chrono::system_clock::rep;
+  using period = std::chrono::system_clock::period;
+  using duration = std::chrono::system_clock::duration;
+  using time_point = std::chrono::time_point<tai_clock>;
+  static constexpr bool is_steady = std::chrono::system_clock::is_steady;
+
+  // Get current TAI time
+  static time_point now() noexcept {
+    auto utc_now = std::chrono::system_clock::now();
+    auto leap_info =
+        get_leap_second_info(to_utc_time<std::chrono::seconds>(utc_now));
+    return time_point(utc_now.time_since_epoch() + leap_info.leap_seconds);
+  }
+
+  // to_sys
+  static std::chrono::system_clock::time_point to_sys(
+      const time_point& t) noexcept {
+    return std::chrono::system_clock::time_point(
+        std::chrono::duration_cast<std::chrono::system_clock::duration>(
+            t.time_since_epoch()));
+  }
+
+  // from_sys
+  static time_point from_sys(
+      const std::chrono::system_clock::time_point& t) noexcept {
+    return time_point(
+        std::chrono::duration_cast<duration>(t.time_since_epoch()));
+  }
+};
+
+// Alias template for tai_time
+template <class Duration>
+using tai_time = std::chrono::time_point<tai_clock, Duration>;
+
+// Alias for tai_seconds
+using tai_seconds = tai_time<std::chrono::seconds>;
+
+// Output stream operator for tai_time
+template <class charT, class traits, class Duration>
+std::basic_ostream<charT, traits>& operator<<(
+    std::basic_ostream<charT, traits>& os, const tai_time<Duration>& t) {
+  auto sys_time = std::chrono::system_clock::time_point(
+      std::chrono::duration_cast<std::chrono::system_clock::duration>(
+          t.time_since_epoch()));
+  std::time_t tt = std::chrono::system_clock::to_time_t(sys_time);
+  os << std::ctime(&tt);
+  return os;
+}
+
 }  // namespace v1
 
 using v1::get_leap_second_info;
@@ -155,6 +219,12 @@ using v1::leap_second_info;
 using v1::utc_clock;
 using v1::utc_seconds;
 using v1::utc_time;
+
+using v1::tai_clock;
+using v1::tai_seconds;
+using v1::tai_time;
+
+using v1::to_utc_time;
 
 }  // namespace stdcpp
 
