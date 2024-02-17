@@ -197,3 +197,27 @@ TEST(HashSpecializationTest, EmptyStringHash) {
   test_empty_string_hash<stdcpp::u16string_view>();
   test_empty_string_hash<stdcpp::u32string_view>();
 }
+
+// constexpr function to test default constructor
+constexpr bool TestDefaultConstructor() {
+  stdcpp::string_view sv;
+  return sv.empty() && sv.size() == 0;
+}
+
+static_assert(TestDefaultConstructor(), "DefaultConstructor test failed");
+
+constexpr bool TestCStrConstructor() {
+  stdcpp::string_view sv("Hello", 5ul);
+  return sv.size() == 5;
+}
+
+static_assert(TestCStrConstructor(), "CStrConstructor test failed");
+
+constexpr bool TestCopyConstructor() {
+  stdcpp::string_view original("Hello", 5ul);
+  stdcpp::string_view copy = original;
+  return copy.size() == original.size() &&
+         copy.data() == original.data();  // Similarly, pointer comparison
+}
+
+static_assert(TestCopyConstructor(), "CopyConstructor test failed");

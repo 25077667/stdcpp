@@ -54,7 +54,10 @@ class basic_string_view {
   constexpr basic_string_view(const CharT* str, size_type len)
       : data_(str), size_(len) {}
 
-  template <class It, class End>
+  template <class It, class End,
+            class = std::enable_if_t<std::is_convertible<
+                typename std::iterator_traits<It>::iterator_category,
+                std::random_access_iterator_tag>::value>>
   constexpr basic_string_view(It begin, End end)
       : data_(begin), size_(std::distance(begin, end)) {}
 
