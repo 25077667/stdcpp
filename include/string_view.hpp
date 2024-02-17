@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <functional>
 #include <iterator>
 #include <stdexcept>
 #include <type_traits>
@@ -464,14 +465,14 @@ namespace std {
 template <>
 struct hash<stdcpp::v1::basic_string_view<char>> {
   size_t operator()(stdcpp::v1::basic_string_view<char> sv) const noexcept {
-    return hash<string_view>()(string_view(sv.data(), sv.size()));
+    return hash<std::string>()(std::string(sv.data(), sv.size()));
   }
 };
 
 template <>
 struct hash<stdcpp::v1::basic_string_view<wchar_t>> {
   size_t operator()(stdcpp::v1::basic_string_view<wchar_t> sv) const noexcept {
-    return hash<wstring_view>()(wstring_view(sv.data(), sv.size()));
+    return hash<std::wstring>()(std::wstring(sv.data(), sv.size()));
   }
 };
 
@@ -479,7 +480,8 @@ struct hash<stdcpp::v1::basic_string_view<wchar_t>> {
 template <>
 struct hash<stdcpp::v1::basic_string_view<char16_t>> {
   size_t operator()(stdcpp::v1::basic_string_view<char16_t> sv) const noexcept {
-    return hash<u16string_view>()(u16string_view(sv.data(), sv.size()));
+    return hash<std::basic_string<char16_t>>()(
+        std::basic_string<char16_t>(sv.data(), sv.size()));
   }
 };
 
@@ -487,7 +489,8 @@ struct hash<stdcpp::v1::basic_string_view<char16_t>> {
 template <>
 struct hash<stdcpp::v1::basic_string_view<char32_t>> {
   size_t operator()(stdcpp::v1::basic_string_view<char32_t> sv) const noexcept {
-    return hash<u32string_view>()(u32string_view(sv.data(), sv.size()));
+    return hash<std::basic_string<char32_t>>()(
+        std::basic_string<char32_t>(sv.data(), sv.size()));
   }
 };
 
