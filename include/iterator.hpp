@@ -2,9 +2,8 @@
 #define __SCC_STDCPP_ITERATOR_HPP__
 #pragma once
 
-#include <type_traits.hpp>
-
 #include <cstddef>
+#include <iterator>
 #include <type_traits>
 
 namespace stdcpp {
@@ -52,6 +51,16 @@ struct cv_combiner<T, const volatile T> {
   using type = const volatile T;
 };
 
+template <typename T>
+struct cv_combiner<const T, volatile T> {
+  using type = const volatile T;
+};
+
+template <typename T>
+struct cv_combiner<volatile T, const T> {
+  using type = const volatile T;
+};
+
 // Primary template for binary_common_reference_t
 template <typename T1, typename T2, typename = void>
 struct binary_common_reference {};
@@ -70,34 +79,47 @@ struct binary_common_reference<
 };
 
 // Specialization for rvalue references where a common lvalue reference exists
-template <typename X, typename Y>
+template <typename T1, typename T2>
 struct binary_common_reference<
-    X&&, Y&&,
-    typename std::enable_if<
-        std::is_convertible<
-            X&&, typename binary_common_reference<X&, Y&>::type>::value &&
-        std::is_convertible<Y&&, typename binary_common_reference<
-                                     X&, Y&>::type>::value>::type> {
-  using type = typename binary_common_reference<X&, Y&>::type&&;
+    T1&&, T2&&,
+    void_t<decltype(false
+                        ? std::declval<typename cv_combiner<
+                              std::decay_t<T1>, std::decay_t<T2>>::type&>()
+                        : std::declval<typename cv_combiner<
+                              std::decay_t<T2>, std::decay_t<T1>>::type&>())>> {
+  using type = typename std::decay<
+      decltype(false ? std::declval<typename cv_combiner<
+                           std::decay_t<T1>, std::decay_t<T2>>::type&>()
+                     : std::declval<typename cv_combiner<
+                           std::decay_t<T2>, std::decay_t<T1>>::type&>())>::
+      type&&;
 };
 
 // Specialization for mixed reference types (one lvalue and one rvalue)
 template <typename A, typename B>
 struct binary_common_reference<
     A&, B&&,
-    typename std::enable_if<std::is_convertible<
-        B&&,
-        typename binary_common_reference<A&, const B&>::type>::value>::type> {
-  using type = typename binary_common_reference<A&, const B&>::type;
+    void_t<
+        decltype(std::declval<typename cv_combiner<A, B>::type&>()),
+        std::enable_if_t<std::is_convertible<
+            B&&, typename binary_common_reference<
+                     A&, typename cv_combiner<A, B>::type&>::type>::value>>> {
+  using type =
+      typename binary_common_reference<A&,
+                                       typename cv_combiner<A, B>::type&>::type;
 };
 
 template <typename A, typename B>
 struct binary_common_reference<
     B&&, A&,
-    typename std::enable_if<std::is_convertible<
-        B&&,
-        typename binary_common_reference<A&, const B&>::type>::value>::type> {
-  using type = typename binary_common_reference<A&, const B&>::type;
+    void_t<
+        decltype(std::declval<typename cv_combiner<B, A>::type&>()),
+        std::enable_if_t<std::is_convertible<
+            B&&, typename binary_common_reference<
+                     A&, typename cv_combiner<B, A>::type&>::type>::value>>> {
+  using type =
+      typename binary_common_reference<A&,
+                                       typename cv_combiner<B, A>::type&>::type;
 };
 
 template <typename T, typename U>
