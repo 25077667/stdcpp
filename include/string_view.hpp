@@ -168,6 +168,79 @@ class basic_string_view {
     return !(x < y);
   }
 
+  // compare with std::string, std::basic_string
+  friend constexpr bool operator==(basic_string_view x,
+                                   const std::basic_string<CharT, Traits>& y) {
+    return x == basic_string_view(y);
+  }
+
+  friend constexpr bool operator==(const std::basic_string<CharT, Traits>& x,
+                                   basic_string_view y) {
+    return basic_string_view(x) == y;
+  }
+
+  friend constexpr bool operator!=(basic_string_view x,
+                                   const std::basic_string<CharT, Traits>& y) {
+    return !(x == y);
+  }
+
+  friend constexpr bool operator!=(const std::basic_string<CharT, Traits>& x,
+                                   basic_string_view y) {
+    return !(x == y);
+  }
+
+  friend constexpr bool operator<(basic_string_view x,
+                                  const std::basic_string<CharT, Traits>& y) {
+    return x < basic_string_view(y);
+  }
+
+  friend constexpr bool operator<(const std::basic_string<CharT, Traits>& x,
+                                  basic_string_view y) {
+    return basic_string_view(x) < y;
+  }
+
+  friend constexpr bool operator>(basic_string_view x,
+                                  const std::basic_string<CharT, Traits>& y) {
+    return x > basic_string_view(y);
+  }
+
+  friend constexpr bool operator>(const std::basic_string<CharT, Traits>& x,
+                                  basic_string_view y) {
+    return basic_string_view(x) > y;
+  }
+
+  friend constexpr bool operator<=(basic_string_view x,
+                                   const std::basic_string<CharT, Traits>& y) {
+    return x <= basic_string_view(y);
+  }
+
+  friend constexpr bool operator<=(const std::basic_string<CharT, Traits>& x,
+                                   basic_string_view y) {
+    return basic_string_view(x) <= y;
+  }
+
+  friend constexpr bool operator>=(basic_string_view x,
+                                   const std::basic_string<CharT, Traits>& y) {
+    return x >= basic_string_view(y);
+  }
+
+  friend constexpr bool operator>=(const std::basic_string<CharT, Traits>& x,
+                                   basic_string_view y) {
+    return basic_string_view(x) >= y;
+  }
+
+  template <size_type N>
+  friend constexpr bool operator==(basic_string_view x,
+                                   const CharT (&y)[N]) noexcept {
+    return x.size_ == N - 1 && Traits::compare(x.data_, y, N - 1) == 0;
+  }
+
+  template <size_type N>
+  friend constexpr bool operator==(const CharT (&x)[N],
+                                   basic_string_view y) noexcept {
+    return y == x;
+  }
+
   constexpr int compare(basic_string_view s) const noexcept {
     const size_type len1 = size_, len2 = s.size_, rlen = std::min(len1, len2);
     int result = Traits::compare(data_, s.data_, rlen);
@@ -432,6 +505,15 @@ class basic_string_view {
 template <typename CharT, typename Traits>
 typename basic_string_view<CharT, Traits>::size_type
     basic_string_view<CharT, Traits>::npos = static_cast<size_type>(-1);
+
+// use SFINAE to check if std::basic_string_view is available
+template <typename T>
+struct has_std_string_view : std::false_type {};
+
+template <typename CharT, typename Traits>
+struct has_std_string_view<std::basic_string_view<CharT, Traits>>
+    : std::true_type {};
+
 };  // namespace v1
 
 // Suffix for basic_string_view literals
@@ -466,6 +548,16 @@ using u16string_view = v1::basic_string_view<char16_t>;
 using u32string_view = v1::basic_string_view<char32_t>;
 
 using namespace literals::string_view_literals;
+
+// converting to std::string_view if v1::has_std_string_view<std::string_view>::value is true
+template <typename CharT, typename Traits>
+auto to_std_string_view(v1::basic_string_view<CharT, Traits> sv)
+    -> std::enable_if_t<
+        v1::has_std_string_view<std::basic_string_view<CharT, Traits>>::value,
+        std::basic_string_view<CharT, Traits>> {
+  return std::basic_string_view<CharT, Traits>(sv.data(), sv.size());
+}
+
 }  // namespace stdcpp
 
 // Open the std namespace to add specializations
