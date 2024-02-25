@@ -5,12 +5,14 @@
 #include <array>
 #include <chrono>
 #include <ctime>
-#include <iomanip>  // For std::get_time
+#include <iomanip>
 #include <iostream>
 #include <istream>
-#include <sstream>  // For std::istringstream
+#include <sstream>
 #include <string>
 #include <utility>
+
+#include <string_view.hpp>
 
 namespace stdcpp {
 namespace v1 {
@@ -211,6 +213,264 @@ std::basic_ostream<charT, traits>& operator<<(
   return os;
 }
 
+// Representing chronos (C++17)
+namespace representing_detail {
+template <class>
+constexpr bool is_duration_v = false;
+
+template <class Rep, class Period>
+constexpr bool is_duration_v<std::chrono::duration<Rep, Period>> = true;
+}  // namespace representing_detail
+
+template <class To, class Rep, class Period,
+          class = std::enable_if_t<representing_detail::is_duration_v<To>>>
+constexpr To floor(const std::chrono::duration<Rep, Period>& d) {
+  To t = std::chrono::duration_cast<To>(d);
+  if (t > d)
+    return t - To{1};
+  return t;
+}
+
+template <class To, class Rep, class Period,
+          class = std::enable_if_t<representing_detail::is_duration_v<To>>>
+constexpr To ceil(const std::chrono::duration<Rep, Period>& d) {
+  To t = std::chrono::duration_cast<To>(d);
+  if (t < d)
+    return t + To{1};
+  return t;
+}
+
+template <class To, class Rep, class Period,
+          class = std::enable_if_t<representing_detail::is_duration_v<To>>>
+constexpr To round(const std::chrono::duration<Rep, Period>& d) {
+  To t0 = std::chrono::duration_cast<To>(d);
+  To t1 = t0 + To{1};
+  if (d - t0 < t1 - d)
+    return t0;
+  return t1;
+}
+
+using days = std::chrono::duration<int, std::ratio<86400>>;
+using weeks = std::chrono::duration<int, std::ratio<604800>>;
+using months = std::chrono::duration<int, std::ratio<2629746>>;
+using years = std::chrono::duration<int, std::ratio<31556952>>;
+
+template <typename Duration>
+using sys_time = std::chrono::time_point<std::chrono::system_clock, Duration>;
+using sys_seconds = sys_time<std::chrono::seconds>;
+using sys_days = sys_time<days>;
+
+struct local_t {};
+
+template <class Duration>
+using local_time = std::chrono::time_point<local_t, Duration>;
+using local_seconds = local_time<std::chrono::seconds>;
+using local_days = local_time<days>;
+
+/**
+ * @brief Usage of sys_info
+ * See the cppreference: https://en.cppreference.com/w/cpp/chrono/sys_info
+ * And, see https://godbolt.org/z/oME3zocoG
+ */
+struct sys_info {
+  sys_seconds begin;
+  sys_seconds end;
+  std::chrono::seconds offset;
+  std::chrono::minutes save;
+  std::string abbrev;
+
+  // Existing constructor
+  sys_info(const sys_seconds& b, const sys_seconds& e,
+           const std::chrono::seconds& o, const std::chrono::minutes& s,
+           const std::string& abbr)
+      : begin(b), end(e), offset(o), save(s), abbrev(abbr) {}
+
+  // Overloaded constructor for any time_point type
+  template <typename Duration>
+  sys_info(
+      const std::chrono::time_point<std::chrono::system_clock, Duration>& b,
+      const std::chrono::time_point<std::chrono::system_clock, Duration>& e,
+      const std::chrono::seconds& o, const std::chrono::minutes& s,
+      const std::string& abbr)
+      : begin(std::chrono::time_point_cast<std::chrono::seconds>(b)),
+        end(std::chrono::time_point_cast<std::chrono::seconds>(e)),
+        offset(o),
+        save(s),
+        abbrev(abbr) {}
+};
+
+struct local_info {
+  // We prevent to use constexpr here, see:
+  // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=54483
+  static const int unique = 0;
+  static const int nonexistent = 1;
+  static const int ambiguous = 2;
+
+  int result;
+  sys_info first;
+  sys_info second;
+};
+
+class time_zone_link {
+ public:
+  time_zone_link(time_zone_link&&) = default;
+  time_zone_link& operator=(time_zone_link&&) = default;
+
+  // unspecified additional constructors
+
+  string_view name() const noexcept {
+    // TODO: Implement the function
+    // Returns: The alternative name for the time zone.
+    return "";
+  }
+  string_view target() const noexcept {
+    // TODO: Implement the function
+    // Returns: The name of the time_zone for which this time_zone_link provides an alternative name.
+    return "";
+  }
+};
+
+struct time_zone_info {
+  std::string coordinates;
+  std::string tz;
+  std::string comments;
+};
+
+class time_zone {
+#ifdef UNIT_TEST
+  friend class TimezoneTest;
+#endif
+  friend struct tzdb;
+  time_zone(const std::string& name, const time_zone_info& info)
+      : name_(name), info_(info) {}
+
+  std::string name_;
+  time_zone_info info_;
+
+ public:
+  time_zone() = delete;
+  time_zone(const time_zone&) = delete;
+  time_zone& operator=(const time_zone&) = delete;
+  time_zone(time_zone&&) = default;
+  time_zone& operator=(time_zone&&) = default;
+  ~time_zone() = default;
+
+  const std::string& name() const { return name_; }
+  template <class Duration>
+  sys_info get_info(const sys_time<Duration>& st) const {
+    // TODO: Implement the function
+    // Because the sys_info is only accuracy to seconds (guaranteed by the standard).
+    // See https://eel.is/c++draft/time.zone.info.sys
+    // We can safely cast the time_point to seconds.
+    auto tp_seconds = std::chrono::time_point_cast<std::chrono::seconds>(st);
+    // dummy return
+    return sys_info(tp_seconds, tp_seconds + std::chrono::seconds(1),
+                    std::chrono::seconds(0), std::chrono::minutes(0), "UTC");
+  }
+
+  template <class Duration>
+  local_info get_info(const local_time<Duration>& tp) const {
+    // TODO: Implement the function
+
+    // Because the local_info is only accuracy to seconds (guaranteed by the standard).
+    // See https://eel.is/c++draft/time.zone.info.local
+    // We can safely cast the time_point to seconds.
+    auto tp_seconds = std::chrono::time_point_cast<std::chrono::seconds>(tp);
+    // dummy return
+    return local_info{
+        local_info::unique,
+        sys_info(tp_seconds, tp_seconds + std::chrono::seconds(1),
+                 std::chrono::seconds(0), std::chrono::minutes(0), "UTC"),
+        sys_info(tp_seconds, tp_seconds + std::chrono::seconds(1),
+                 std::chrono::seconds(0), std::chrono::minutes(0), "UTC")};
+  }
+
+  // to_sys
+  template <class Duration>
+  sys_time<Duration> to_sys(const local_time<Duration>& tp) const {
+    // TODO: Implement the function
+    (void)tp;
+
+    return sys_time<Duration>();
+  }
+
+  // to_local
+  template <class Duration>
+  local_time<Duration> to_local(const sys_time<Duration>& tp) const {
+    // TODO: Implement the function
+    (void)tp;
+    return local_time<Duration>();
+  }
+
+  // operator==
+  friend bool operator==(const time_zone& lhs, const time_zone& rhs) {
+    return lhs.name_ == rhs.name_;
+  }
+};
+
+struct tzdb {
+ private:
+#if __cplusplus >= 201703L
+  using string_view_intl = std::string_view;
+#else
+  using string_view_intl = stdcpp::string_view;
+#endif
+ public:
+  std::string version;
+  std::vector<time_zone> zones;
+  std::vector<time_zone_link> links;
+  std::vector<leap_second> leap_seconds;
+
+  const time_zone* locate_zone(string_view_intl tz_name) const {
+    // TODO: Implement the function
+    for (const auto& zone : zones) {
+      if (zone.name() == tz_name) {
+        return &zone;
+      }
+    }
+    return nullptr;
+  }
+  const time_zone* current_zone() const {
+    // TODO: Implement the function
+    return locate_zone("UTC");
+  }
+};
+
+// Helper function to format time_point as date string
+std::string format_time_point(const sys_seconds& tp) {
+  std::time_t time = tp.time_since_epoch().count();
+  std::tm tm = *std::gmtime(&time);  // Convert to broken-down time in UTC
+
+  std::stringstream ss;
+  ss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
+  return ss.str();
+}
+
+// Helper function to format offset as HH:MM:SS
+std::string format_offset(const std::chrono::seconds& offset) {
+  auto total_seconds = offset.count();
+  int hours = total_seconds / 3600;
+  int minutes = (total_seconds % 3600) / 60;
+  int secs = total_seconds % 60;
+
+  std::stringstream ss;
+  ss << std::setw(2) << std::setfill('0') << hours << ":" << std::setw(2)
+     << std::setfill('0') << minutes << ":" << std::setw(2) << std::setfill('0')
+     << secs;
+  return ss.str();
+}
+
+// Overloaded operator<< for sys_info
+std::ostream& operator<<(std::ostream& os, const sys_info& info) {
+  os << "[" << format_time_point(info.begin) << ","
+     << format_time_point(info.end) << "," << format_offset(info.offset) << ","
+     << info.save.count() << "min," << info.abbrev << "]";
+  return os;
+}
+
+bool operator==(const time_zone_link& x, const time_zone_link& y) {
+  return x.name() == y.name();
+}
 }  // namespace v1
 
 using v1::get_leap_second_info;
