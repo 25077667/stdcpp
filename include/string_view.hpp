@@ -507,10 +507,6 @@ template <typename CharT, typename Traits>
 typename basic_string_view_<CharT, Traits>::size_type
     basic_string_view_<CharT, Traits>::npos = static_cast<size_type>(-1);
 
-template <typename CharT, typename Traits>
-using has_std_string_view =
-    std::is_class<std::basic_string_view<CharT, Traits>>;
-
 };  // namespace v1
 
 // Suffix for basic_string_view_ literals
@@ -545,15 +541,6 @@ using u16string_view = v1::basic_string_view_<char16_t>;
 using u32string_view = v1::basic_string_view_<char32_t>;
 
 using namespace literals::string_view_literals;
-
-// converting to std::string_view if v1::has_std_string_view<std::string_view>::value is true
-template <typename CharT, typename Traits>
-auto to_std_string_view(v1::basic_string_view_<CharT, Traits> sv)
-    -> std::enable_if_t<v1::has_std_string_view<CharT, Traits>::value,
-                        std::basic_string_view<CharT, Traits>> {
-  return std::basic_string_view<CharT, Traits>(sv.data(), sv.size());
-}
-
 }  // namespace stdcpp
 
 // Open the std namespace to add specializations
