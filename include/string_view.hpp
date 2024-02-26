@@ -4,6 +4,7 @@
 
 #if __cplusplus < 201703L
 #include <string.hpp>
+#include <type_traits.hpp>
 
 #include <algorithm>
 #include <cstddef>
@@ -18,7 +19,7 @@ namespace stdcpp {
 namespace v1 {
 
 template <typename CharT, typename Traits = std::char_traits<CharT>>
-class basic_string_view {
+class basic_string_view_ {
 
  public:
   // types
@@ -44,32 +45,32 @@ class basic_string_view {
 
  public:
   // [string.view.cons], construction and assignment
-  constexpr basic_string_view() noexcept : data_(nullptr), size_(0) {}
-  constexpr basic_string_view(const basic_string_view&) noexcept = default;
-  constexpr basic_string_view& operator=(const basic_string_view&) noexcept =
+  constexpr basic_string_view_() noexcept : data_(nullptr), size_(0) {}
+  constexpr basic_string_view_(const basic_string_view_&) noexcept = default;
+  constexpr basic_string_view_& operator=(const basic_string_view_&) noexcept =
       default;
-  constexpr basic_string_view(const CharT* str)
+  constexpr basic_string_view_(const CharT* str)
       : data_(str), size_(Traits::length(str)) {}
-  basic_string_view(nullptr_t) = delete;
-  constexpr basic_string_view(const CharT* str, size_type len)
+  basic_string_view_(nullptr_t) = delete;
+  constexpr basic_string_view_(const CharT* str, size_type len)
       : data_(str), size_(len) {}
 
   template <class It, class End,
             class = std::enable_if_t<std::is_convertible<
                 typename std::iterator_traits<It>::iterator_category,
                 std::random_access_iterator_tag>::value>>
-  constexpr basic_string_view(It begin, End end)
+  constexpr basic_string_view_(It begin, End end)
       : data_(begin), size_(std::distance(begin, end)) {}
 
   // Explicit conversion from another range type
   template <class R>
-  constexpr explicit basic_string_view(R&& r)
+  constexpr explicit basic_string_view_(R&& r)
       : data_(r.data()), size_(r.size()) {}
 
  public:
   constexpr const_reference at(size_type pos) const {
     if (pos >= size_)
-      throw std::out_of_range("basic_string_view::at");
+      throw std::out_of_range("basic_string_view_::at");
     return data_[pos];
   }
   constexpr const_pointer data() const noexcept { return data_; }
@@ -108,7 +109,7 @@ class basic_string_view {
     size_ -= n;
   }
   constexpr void remove_suffix(size_type n) { size_ -= n; }
-  constexpr void swap(basic_string_view& s) noexcept {
+  constexpr void swap(basic_string_view_& s) noexcept {
     auto temp_data = data_;
     auto temp_size = size_;
     data_ = s.data_;
@@ -120,128 +121,128 @@ class basic_string_view {
   // [string.view.ops], string operations
   constexpr size_type copy(CharT* s, size_type n, size_type pos = 0) const {
     if (pos > size_)
-      throw std::out_of_range("basic_string_view::copy");
+      throw std::out_of_range("basic_string_view_::copy");
     const size_type len = std::min(n, size_ - pos);
     Traits::copy(s, data_ + pos, len);
     return len;
   }
 
-  constexpr basic_string_view substr(size_type pos = 0,
-                                     size_type n = npos) const {
+  constexpr basic_string_view_ substr(size_type pos = 0,
+                                      size_type n = npos) const {
     if (pos > size_)
-      throw std::out_of_range("basic_string_view::substr");
+      throw std::out_of_range("basic_string_view_::substr");
     const size_type len = std::min(n, size_ - pos);
-    return basic_string_view(data_ + pos, len);
+    return basic_string_view_(data_ + pos, len);
   }
 
   // operator==
-  friend constexpr bool operator==(basic_string_view x,
-                                   basic_string_view y) noexcept {
+  friend constexpr bool operator==(basic_string_view_ x,
+                                   basic_string_view_ y) noexcept {
     return x.size_ == y.size_ &&
            Traits::compare(x.data_, y.data_, x.size_) == 0;
   }
 
-  friend constexpr bool operator!=(basic_string_view x,
-                                   basic_string_view y) noexcept {
+  friend constexpr bool operator!=(basic_string_view_ x,
+                                   basic_string_view_ y) noexcept {
     return !(x == y);
   }
 
-  friend constexpr bool operator<(basic_string_view x,
-                                  basic_string_view y) noexcept {
+  friend constexpr bool operator<(basic_string_view_ x,
+                                  basic_string_view_ y) noexcept {
     const size_type len = std::min(x.size_, y.size_);
     const int result = Traits::compare(x.data_, y.data_, len);
     return result < 0 || (result == 0 && x.size_ < y.size_);
   }
 
-  friend constexpr bool operator>(basic_string_view x,
-                                  basic_string_view y) noexcept {
+  friend constexpr bool operator>(basic_string_view_ x,
+                                  basic_string_view_ y) noexcept {
     return y < x;
   }
 
-  friend constexpr bool operator<=(basic_string_view x,
-                                   basic_string_view y) noexcept {
+  friend constexpr bool operator<=(basic_string_view_ x,
+                                   basic_string_view_ y) noexcept {
     return !(y < x);
   }
 
-  friend constexpr bool operator>=(basic_string_view x,
-                                   basic_string_view y) noexcept {
+  friend constexpr bool operator>=(basic_string_view_ x,
+                                   basic_string_view_ y) noexcept {
     return !(x < y);
   }
 
   // compare with std::string, std::basic_string
-  friend constexpr bool operator==(basic_string_view x,
+  friend constexpr bool operator==(basic_string_view_ x,
                                    const std::basic_string<CharT, Traits>& y) {
-    return x == basic_string_view(y);
+    return x == basic_string_view_(y);
   }
 
   friend constexpr bool operator==(const std::basic_string<CharT, Traits>& x,
-                                   basic_string_view y) {
-    return basic_string_view(x) == y;
+                                   basic_string_view_ y) {
+    return basic_string_view_(x) == y;
   }
 
-  friend constexpr bool operator!=(basic_string_view x,
+  friend constexpr bool operator!=(basic_string_view_ x,
                                    const std::basic_string<CharT, Traits>& y) {
     return !(x == y);
   }
 
   friend constexpr bool operator!=(const std::basic_string<CharT, Traits>& x,
-                                   basic_string_view y) {
+                                   basic_string_view_ y) {
     return !(x == y);
   }
 
-  friend constexpr bool operator<(basic_string_view x,
+  friend constexpr bool operator<(basic_string_view_ x,
                                   const std::basic_string<CharT, Traits>& y) {
-    return x < basic_string_view(y);
+    return x < basic_string_view_(y);
   }
 
   friend constexpr bool operator<(const std::basic_string<CharT, Traits>& x,
-                                  basic_string_view y) {
-    return basic_string_view(x) < y;
+                                  basic_string_view_ y) {
+    return basic_string_view_(x) < y;
   }
 
-  friend constexpr bool operator>(basic_string_view x,
+  friend constexpr bool operator>(basic_string_view_ x,
                                   const std::basic_string<CharT, Traits>& y) {
-    return x > basic_string_view(y);
+    return x > basic_string_view_(y);
   }
 
   friend constexpr bool operator>(const std::basic_string<CharT, Traits>& x,
-                                  basic_string_view y) {
-    return basic_string_view(x) > y;
+                                  basic_string_view_ y) {
+    return basic_string_view_(x) > y;
   }
 
-  friend constexpr bool operator<=(basic_string_view x,
+  friend constexpr bool operator<=(basic_string_view_ x,
                                    const std::basic_string<CharT, Traits>& y) {
-    return x <= basic_string_view(y);
+    return x <= basic_string_view_(y);
   }
 
   friend constexpr bool operator<=(const std::basic_string<CharT, Traits>& x,
-                                   basic_string_view y) {
-    return basic_string_view(x) <= y;
+                                   basic_string_view_ y) {
+    return basic_string_view_(x) <= y;
   }
 
-  friend constexpr bool operator>=(basic_string_view x,
+  friend constexpr bool operator>=(basic_string_view_ x,
                                    const std::basic_string<CharT, Traits>& y) {
-    return x >= basic_string_view(y);
+    return x >= basic_string_view_(y);
   }
 
   friend constexpr bool operator>=(const std::basic_string<CharT, Traits>& x,
-                                   basic_string_view y) {
-    return basic_string_view(x) >= y;
+                                   basic_string_view_ y) {
+    return basic_string_view_(x) >= y;
   }
 
   template <size_type N>
-  friend constexpr bool operator==(basic_string_view x,
+  friend constexpr bool operator==(basic_string_view_ x,
                                    const CharT (&y)[N]) noexcept {
     return x.size_ == N - 1 && Traits::compare(x.data_, y, N - 1) == 0;
   }
 
   template <size_type N>
   friend constexpr bool operator==(const CharT (&x)[N],
-                                   basic_string_view y) noexcept {
+                                   basic_string_view_ y) noexcept {
     return y == x;
   }
 
-  constexpr int compare(basic_string_view s) const noexcept {
+  constexpr int compare(basic_string_view_ s) const noexcept {
     const size_type len1 = size_, len2 = s.size_, rlen = std::min(len1, len2);
     int result = Traits::compare(data_, s.data_, rlen);
     if (result != 0)
@@ -252,30 +253,30 @@ class basic_string_view {
   }
 
   constexpr int compare(size_type pos1, size_type n1,
-                        basic_string_view s) const {
+                        basic_string_view_ s) const {
     return substr(pos1, n1).compare(s);
   }
 
-  constexpr int compare(size_type pos1, size_type n1, basic_string_view s,
+  constexpr int compare(size_type pos1, size_type n1, basic_string_view_ s,
                         size_type pos2, size_type n2) const {
     return substr(pos1, n1).compare(s.substr(pos2, n2));
   }
 
   constexpr int compare(const CharT* s) const {
-    return compare(basic_string_view(s));
+    return compare(basic_string_view_(s));
   }
 
   constexpr int compare(size_type pos1, size_type n1, const CharT* s) const {
-    return substr(pos1, n1).compare(basic_string_view(s));
+    return substr(pos1, n1).compare(basic_string_view_(s));
   }
 
   constexpr int compare(size_type pos1, size_type n1, const CharT* s,
                         size_type n2) const {
-    return substr(pos1, n1).compare(basic_string_view(s, n2));
+    return substr(pos1, n1).compare(basic_string_view_(s, n2));
   }
 
   // Check if the string_view starts with the given prefix
-  constexpr bool starts_with(basic_string_view x) const noexcept {
+  constexpr bool starts_with(basic_string_view_ x) const noexcept {
     return size_ >= x.size_ && compare(0, x.size_, x) == 0;
   }
 
@@ -284,11 +285,11 @@ class basic_string_view {
   }
 
   constexpr bool starts_with(const CharT* x) const {
-    return starts_with(basic_string_view(x));
+    return starts_with(basic_string_view_(x));
   }
 
   // Check if the string_view ends with the given suffix
-  constexpr bool ends_with(basic_string_view x) const noexcept {
+  constexpr bool ends_with(basic_string_view_ x) const noexcept {
     return size_ >= x.size_ && compare(size_ - x.size_, npos, x) == 0;
   }
 
@@ -297,27 +298,27 @@ class basic_string_view {
   }
 
   constexpr bool ends_with(const CharT* x) const {
-    return ends_with(basic_string_view(x));
+    return ends_with(basic_string_view_(x));
   }
 
   // Check if the string_view contains the given substring
-  constexpr bool contains(basic_string_view x) const noexcept {
+  constexpr bool contains(basic_string_view_ x) const noexcept {
     return find(x) != npos;
   }
 
   constexpr bool contains(CharT x) const noexcept { return find(x) != npos; }
 
   constexpr bool contains(const CharT* x) const {
-    return find(basic_string_view(x)) != npos;
+    return find(basic_string_view_(x)) != npos;
   }
 
   template <size_type N>
   constexpr bool contains(const CharT (&x)[N]) const {
-    return find(basic_string_view(x, N - 1)) != npos;
+    return find(basic_string_view_(x, N - 1)) != npos;
   }
 
   // [string.view.find], searching
-  constexpr size_type find(basic_string_view s,
+  constexpr size_type find(basic_string_view_ s,
                            size_type pos = 0) const noexcept {
     if (pos > size_ || s.size_ > size_ - pos)
       return npos;
@@ -343,14 +344,14 @@ class basic_string_view {
   }
 
   constexpr size_type find(const CharT* s, size_type pos, size_type n) const {
-    return find(basic_string_view(s, n), pos);
+    return find(basic_string_view_(s, n), pos);
   }
 
   constexpr size_type find(const CharT* s, size_type pos = 0) const {
-    return find(basic_string_view(s), pos);
+    return find(basic_string_view_(s), pos);
   }
 
-  constexpr size_type rfind(basic_string_view s,
+  constexpr size_type rfind(basic_string_view_ s,
                             size_type pos = npos) const noexcept {
     pos = std::min(pos, size_);
     if (s.size_ > size_)
@@ -379,15 +380,15 @@ class basic_string_view {
   }
 
   constexpr size_type rfind(const CharT* s, size_type pos, size_type n) const {
-    return rfind(basic_string_view(s, n), pos);
+    return rfind(basic_string_view_(s, n), pos);
   }
 
   constexpr size_type rfind(const CharT* s, size_type pos = npos) const {
-    return rfind(basic_string_view(s), pos);
+    return rfind(basic_string_view_(s), pos);
   }
 
   // Find the first character from the set
-  constexpr size_type find_first_of(basic_string_view s,
+  constexpr size_type find_first_of(basic_string_view_ s,
                                     size_type pos = 0) const noexcept {
     for (size_type i = pos; i < size_; ++i) {
       if (s.find(data_[i]) != npos) {
@@ -403,15 +404,15 @@ class basic_string_view {
 
   constexpr size_type find_first_of(const CharT* s, size_type pos,
                                     size_type n) const {
-    return find_first_of(basic_string_view(s, n), pos);
+    return find_first_of(basic_string_view_(s, n), pos);
   }
 
   constexpr size_type find_first_of(const CharT* s, size_type pos = 0) const {
-    return find_first_of(basic_string_view(s), pos);
+    return find_first_of(basic_string_view_(s), pos);
   }
 
   // Find the last character from the set
-  constexpr size_type find_last_of(basic_string_view s,
+  constexpr size_type find_last_of(basic_string_view_ s,
                                    size_type pos = npos) const noexcept {
     pos = std::min(pos, size_ - 1);
     for (size_type i = pos + 1; i > 0; --i) {
@@ -429,15 +430,15 @@ class basic_string_view {
 
   constexpr size_type find_last_of(const CharT* s, size_type pos,
                                    size_type n) const {
-    return find_last_of(basic_string_view(s, n), pos);
+    return find_last_of(basic_string_view_(s, n), pos);
   }
 
   constexpr size_type find_last_of(const CharT* s, size_type pos = npos) const {
-    return find_last_of(basic_string_view(s), pos);
+    return find_last_of(basic_string_view_(s), pos);
   }
 
   // Find the first character not in the set
-  constexpr size_type find_first_not_of(basic_string_view s,
+  constexpr size_type find_first_not_of(basic_string_view_ s,
                                         size_type pos = 0) const noexcept {
     for (size_type i = pos; i < size_; ++i) {
       if (s.find(data_[i]) == npos) {
@@ -459,16 +460,16 @@ class basic_string_view {
 
   constexpr size_type find_first_not_of(const CharT* s, size_type pos,
                                         size_type n) const {
-    return find_first_not_of(basic_string_view(s, n), pos);
+    return find_first_not_of(basic_string_view_(s, n), pos);
   }
 
   constexpr size_type find_first_not_of(const CharT* s,
                                         size_type pos = 0) const {
-    return find_first_not_of(basic_string_view(s), pos);
+    return find_first_not_of(basic_string_view_(s), pos);
   }
 
   // Find the last character not in the set
-  constexpr size_type find_last_not_of(basic_string_view s,
+  constexpr size_type find_last_not_of(basic_string_view_ s,
                                        size_type pos = npos) const noexcept {
     pos = std::min(pos, size_ - 1);
     for (size_type i = pos + 1; i > 0; --i) {
@@ -491,70 +492,65 @@ class basic_string_view {
 
   constexpr size_type find_last_not_of(const CharT* s, size_type pos,
                                        size_type n) const {
-    return find_last_not_of(basic_string_view(s, n), pos);
+    return find_last_not_of(basic_string_view_(s, n), pos);
   }
 
   constexpr size_type find_last_not_of(const CharT* s,
                                        size_type pos = npos) const {
-    return find_last_not_of(basic_string_view(s), pos);
+    return find_last_not_of(basic_string_view_(s), pos);
   }
 
   // Non-member functions (comparison operators, etc.) should be implemented outside the class.
 };
 
 template <typename CharT, typename Traits>
-typename basic_string_view<CharT, Traits>::size_type
-    basic_string_view<CharT, Traits>::npos = static_cast<size_type>(-1);
-
-// use SFINAE to check if std::basic_string_view is available
-template <typename T>
-struct has_std_string_view : std::false_type {};
+typename basic_string_view_<CharT, Traits>::size_type
+    basic_string_view_<CharT, Traits>::npos = static_cast<size_type>(-1);
 
 template <typename CharT, typename Traits>
-struct has_std_string_view<std::basic_string_view<CharT, Traits>>
-    : std::true_type {};
+using has_std_string_view =
+    std::is_class<std::basic_string_view<CharT, Traits>>;
 
 };  // namespace v1
 
-// Suffix for basic_string_view literals
+// Suffix for basic_string_view_ literals
 inline namespace literals {
 inline namespace string_view_literals {
-constexpr v1::basic_string_view<char> operator"" _sv(const char* str,
-                                                     std::size_t len) {
-  return v1::basic_string_view<char>(str, len);
+constexpr v1::basic_string_view_<char> operator"" _sv(const char* str,
+                                                      std::size_t len) {
+  return v1::basic_string_view_<char>(str, len);
 }
 
-constexpr v1::basic_string_view<wchar_t> operator"" _sv(const wchar_t * str,
-                                                        std::size_t len) {
-  return v1::basic_string_view<wchar_t>(str, len);
-}
-
-constexpr v1::basic_string_view<char16_t> operator"" _sv(const char16_t* str,
+constexpr v1::basic_string_view_<wchar_t> operator"" _sv(const wchar_t * str,
                                                          std::size_t len) {
-  return v1::basic_string_view<char16_t>(str, len);
+  return v1::basic_string_view_<wchar_t>(str, len);
 }
 
-constexpr v1::basic_string_view<char32_t> operator"" _sv(const char32_t* str,
-                                                         std::size_t len) {
-  return v1::basic_string_view<char32_t>(str, len);
+constexpr v1::basic_string_view_<char16_t> operator"" _sv(const char16_t* str,
+                                                          std::size_t len) {
+  return v1::basic_string_view_<char16_t>(str, len);
+}
+
+constexpr v1::basic_string_view_<char32_t> operator"" _sv(const char32_t* str,
+                                                          std::size_t len) {
+  return v1::basic_string_view_<char32_t>(str, len);
 }
 
 }  // namespace string_view_literals
 }  // namespace literals
 
-using string_view = v1::basic_string_view<char>;
-using wstring_view = v1::basic_string_view<wchar_t>;
-using u16string_view = v1::basic_string_view<char16_t>;
-using u32string_view = v1::basic_string_view<char32_t>;
+using string_view = v1::basic_string_view_<char>;
+using wstring_view = v1::basic_string_view_<wchar_t>;
+using u16string_view = v1::basic_string_view_<char16_t>;
+using u32string_view = v1::basic_string_view_<char32_t>;
 
 using namespace literals::string_view_literals;
 
 // converting to std::string_view if v1::has_std_string_view<std::string_view>::value is true
 template <typename CharT, typename Traits>
-auto to_std_string_view(v1::basic_string_view<CharT, Traits> sv)
-    -> std::enable_if_t<
-        v1::has_std_string_view<std::basic_string_view<CharT, Traits>>::value,
-        std::basic_string_view<CharT, Traits>> {
+auto to_std_string_view(v1::basic_string_view_<CharT, Traits> sv)
+    -> std::enable_if_t<v1::has_std_string_view<CharT, Traits>::value,
+                        std::basic_string_view<CharT, Traits>> {
   return std::basic_string_view<CharT, Traits>(sv.data(), sv.size());
 }
 
@@ -564,23 +560,24 @@ auto to_std_string_view(v1::basic_string_view<CharT, Traits> sv)
 namespace std {
 
 template <>
-struct hash<stdcpp::v1::basic_string_view<char>> {
-  size_t operator()(stdcpp::v1::basic_string_view<char> sv) const noexcept {
+struct hash<stdcpp::v1::basic_string_view_<char>> {
+  size_t operator()(stdcpp::v1::basic_string_view_<char> sv) const noexcept {
     return hash<std::string>()(std::string(sv.data(), sv.size()));
   }
 };
 
 template <>
-struct hash<stdcpp::v1::basic_string_view<wchar_t>> {
-  size_t operator()(stdcpp::v1::basic_string_view<wchar_t> sv) const noexcept {
+struct hash<stdcpp::v1::basic_string_view_<wchar_t>> {
+  size_t operator()(stdcpp::v1::basic_string_view_<wchar_t> sv) const noexcept {
     return hash<std::wstring>()(std::wstring(sv.data(), sv.size()));
   }
 };
 
 // char16_t
 template <>
-struct hash<stdcpp::v1::basic_string_view<char16_t>> {
-  size_t operator()(stdcpp::v1::basic_string_view<char16_t> sv) const noexcept {
+struct hash<stdcpp::v1::basic_string_view_<char16_t>> {
+  size_t operator()(
+      stdcpp::v1::basic_string_view_<char16_t> sv) const noexcept {
     return hash<std::basic_string<char16_t>>()(
         std::basic_string<char16_t>(sv.data(), sv.size()));
   }
@@ -588,8 +585,9 @@ struct hash<stdcpp::v1::basic_string_view<char16_t>> {
 
 // Add the missing char32_t specialization
 template <>
-struct hash<stdcpp::v1::basic_string_view<char32_t>> {
-  size_t operator()(stdcpp::v1::basic_string_view<char32_t> sv) const noexcept {
+struct hash<stdcpp::v1::basic_string_view_<char32_t>> {
+  size_t operator()(
+      stdcpp::v1::basic_string_view_<char32_t> sv) const noexcept {
     return hash<std::basic_string<char32_t>>()(
         std::basic_string<char32_t>(sv.data(), sv.size()));
   }
