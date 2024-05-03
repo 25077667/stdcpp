@@ -237,8 +237,17 @@ template <typename T>
 using iter_common_reference_t = typename iter_common_reference<T>::type;
 }  // namespace v1
 
+namespace v1 {
+template <typename InputIt>
+constexpr iter_difference_t<InputIt> distance(InputIt first, InputIt last) {
+  // TODO: support non-random access iterators
+  return last - first;
+}
+}  // namespace v1
+
 using v1::common_reference;
 using v1::common_reference_t;
+using v1::distance;
 using v1::iter_const_reference;
 using v1::iter_const_reference_t;
 using v1::iter_difference;

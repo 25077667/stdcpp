@@ -3,6 +3,7 @@
 #pragma once
 
 #if __cplusplus < 201703L
+#include <iterator.hpp>
 #include <string.hpp>
 #include <type_traits.hpp>
 
@@ -55,12 +56,21 @@ class basic_string_view_ {
   constexpr basic_string_view_(const CharT* str, size_type len)
       : data_(str), size_(len) {}
 
+  // string literal type
+  template <size_type N>
+  constexpr basic_string_view_(const CharT (&str)[N]) noexcept
+      : data_(str), size_(N - 1) {}
+
+#ifndef _MSC_VER
+  // It seems some deduction bug for Windows MSVC
+  // TODO: fix this for MSVC
   template <class It, class End,
             class = std::enable_if_t<std::is_convertible<
                 typename std::iterator_traits<It>::iterator_category,
                 std::random_access_iterator_tag>::value>>
   constexpr basic_string_view_(It begin, End end)
-      : data_(begin), size_(std::distance(begin, end)) {}
+      : data_(begin), size_((size_t)stdcpp::v1::distance(begin, end)) {}
+#endif
 
   // Explicit conversion from another range type
   template <class R>

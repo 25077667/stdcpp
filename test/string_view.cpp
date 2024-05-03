@@ -53,8 +53,13 @@ TEST(BasicStringViewTest, IterationPerformance) {
 
   auto start = std::chrono::high_resolution_clock::now();
   for (char c : sv) {
-    // Simulate minimal processing to avoid loop optimization removal
+// Simulate minimal processing to avoid loop optimization removal
+#ifdef _MSC_VER
+    (void)c;
+    __asm { nop }
+#else
     asm volatile("" : "+g"(c) : :);
+#endif
   }
   auto end = std::chrono::high_resolution_clock::now();
 

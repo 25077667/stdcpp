@@ -10,6 +10,10 @@ set(INCLUDE_PATH
     ${CMAKE_SOURCE_DIR}
 )
 
+if (MSVC)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
+
 include_directories(${INCLUDE_PATH})
 if (MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Od /W4 /WX /EHsc /Zi")

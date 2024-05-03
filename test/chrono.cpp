@@ -85,8 +85,12 @@ TEST_F(UtcClockLeapSecondTest, LeapSecondComparisons) {
 }
 
 TEST_F(UtcClockLeapSecondTest, LeapSecondInfoAccuracy) {
-  // Test a specific date for leap second info
+// Test a specific date for leap second info
+#ifdef _MSC_VER
+  std::tm tm = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+#else
   std::tm tm = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+#endif
   tm.tm_year = 116;  // 2016 - 1900
   tm.tm_mon = 6;     // July (tm_mon is 0-based)
   tm.tm_mday = 1;

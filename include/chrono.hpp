@@ -449,7 +449,7 @@ std::string format_time_point(const sys_seconds& tp) {
 // Helper function to format offset as HH:MM:SS
 std::string format_offset(const std::chrono::seconds& offset) {
   auto total_seconds = offset.count();
-  int hours = total_seconds / 3600;
+  int hours = static_cast<int>(total_seconds / 3600);
   int minutes = (total_seconds % 3600) / 60;
   int secs = total_seconds % 60;
 
